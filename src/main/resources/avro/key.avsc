@@ -1,0 +1,12 @@
+{
+    "type": "record",
+    "name": "IndividualTableKey",
+    "namespace": "io.reactiveminds.mock.avro",
+    "fields": [
+        {
+            "name": "individual_id",
+            "type": ["null","string"],
+            "default": null
+        }
+    ]
+}

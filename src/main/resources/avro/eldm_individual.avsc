@@ -1,0 +1,52 @@
+{
+  "type": "record",
+  "namespace": "io.reactiveminds.mock.avro",
+  "name": "IndividualTable",
+  "fields": [
+    {
+      "name": "_delete",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "individual_id",
+      "type": "string"
+    },
+    {
+      "name": "individual_age",
+      "type": "int"
+    },
+    {
+      "name": "source_code",
+      "type": "string"
+    },
+    {
+      "name": "load_date_time",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "load_user",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "individual_document",
+      "type": [
+        "null",
+        "string"
+      ],
+      "default": null
+    },
+    {
+      "name": "tracking_identifier",
+      "type": "string"
+    }
+  ]
+}

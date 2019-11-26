@@ -1,0 +1,10 @@
+{
+  "name" : "simpleListenr",
+  "coalesceMap" : "individualMain",
+  "requestMap" : "individualStage",
+  "keySchema" : "classpath:avro/key.avsc",
+  "valueSchema" : "classpath:avro/eldm_individual.avsc",
+  "dataLoader" : "io.reactiveminds.datagrid.api.mock.MockDataLoader",
+  "flushHandler" : "io.reactiveminds.datagrid.api.mock.MockHandler",
+  "survivalRule" : "io.reactiveminds.datagrid.api.mock.MockRule"
+}
