@@ -30,7 +30,6 @@ import com.hazelcast.core.HazelcastInstance;
 
 import io.reactiveminds.datagrid.api.DataLoader;
 import io.reactiveminds.datagrid.err.ConfigurationException;
-import io.reactiveminds.datagrid.err.FlushFailedException;
 import io.reactiveminds.datagrid.spi.ConfigRegistry;
 import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.util.ThrowingLambdaFunc;
@@ -189,13 +188,10 @@ class DefaultConfigRegistry implements DisposableBean, ConfigRegistry{
 		return null;
 	}
 	@Override
-	public void executeFlush(String listenerConfig) {
+	public IProcessor getProcessor(String listenerConfig) {
 		if(listenerMap.containsKey(listenerConfig)) {
-			try {
-				listenerMap.get(listenerConfig).getProcessor().flush();
-			} catch (IOException e) {
-				throw new FlushFailedException("", e);	
-			}
+			return listenerMap.get(listenerConfig).getProcessor();
 		}
+		return null;
 	}
 }

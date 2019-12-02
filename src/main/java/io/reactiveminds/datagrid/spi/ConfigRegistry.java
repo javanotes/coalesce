@@ -38,5 +38,5 @@ public interface ConfigRegistry {
 	 * 
 	 * @param listenerConfig
 	 */
-	void executeFlush(String listenerConfig);
+	IProcessor getProcessor(String listenerConfig);
 }

@@ -5,6 +5,7 @@ import static spark.Spark.post;
 import static spark.Spark.stop;
 import static spark.Spark.threadPool;
 
+import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.PostConstruct;
@@ -25,8 +26,10 @@ import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 
 import io.reactiveminds.datagrid.client.GridCommand.Command;
+import io.reactiveminds.datagrid.err.FlushFailedException;
 import io.reactiveminds.datagrid.spi.ConfigRegistry;
 import io.reactiveminds.datagrid.spi.EdgeService;
+import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.DataEvent;
 import spark.Request;
@@ -130,7 +133,14 @@ class SimpleEdgeService implements EdgeService, MessageListener<GridCommand> {
 		GridCommand cmd = message.getMessageObject();
 		switch(cmd.getCommand()) {
 			case FLUSH:
-				configRegistry.executeFlush(cmd.getArgs());
+				IProcessor processor = configRegistry.getProcessor(cmd.getArgs());
+				if(processor != null) {
+					try {
+						processor.flush();
+					} catch (IOException e) {
+						log.error("Exception on grid command", new FlushFailedException("Flush trigger failed", e));
+					}
+				}
 				break;
 			default:
 				break;
