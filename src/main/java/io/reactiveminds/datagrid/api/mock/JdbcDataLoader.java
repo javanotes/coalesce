@@ -12,7 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import io.reactiveminds.datagrid.api.DataLoader;
 import io.reactiveminds.datagrid.err.DataStoreException;
 import io.reactiveminds.datagrid.util.Utils;
-
+@Deprecated
 public class JdbcDataLoader extends DataLoader {
 
 	String selectQuery;

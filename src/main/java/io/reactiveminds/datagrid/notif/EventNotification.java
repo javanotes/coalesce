@@ -7,7 +7,7 @@ public class EventNotification extends ApplicationEvent{
 	
 	@Override
 	public String toString() {
-		return " [event=" + event + ", key=" + key + ", value=" + value + ", generatedBy="
+		return " [event=" + event + ", key=" + key + ", value=" + (value == null ? "" : "{suppressed ..}") + ", generatedBy="
 				+ getSource() + ", tracingId=" + tracingId + "]";
 	}
 	public EventNotification(Object source) {

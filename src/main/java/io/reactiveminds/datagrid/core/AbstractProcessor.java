@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -24,8 +25,10 @@ import io.reactiveminds.datagrid.api.SurvivorRule;
 import io.reactiveminds.datagrid.err.ProcessFailedException;
 import io.reactiveminds.datagrid.notif.EventType;
 import io.reactiveminds.datagrid.spi.GridContext;
+import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.spi.EventsNotifier;
 import io.reactiveminds.datagrid.util.Utils;
+import io.reactiveminds.datagrid.vo.CoalesceEntry;
 import io.reactiveminds.datagrid.vo.DataEvent;
 import io.reactiveminds.datagrid.vo.KeyValRecord;
 
@@ -84,19 +87,14 @@ abstract class AbstractProcessor implements IProcessor, EntryEvictedListener<byt
 				map().set(req.getMessageKey(), oldVal);
 				setDirty(req.getMessageKey());
 				
-				//return new InputRequest(req.getKey(), oldVal.getValueBytes());
 			} 
 			catch (Exception e) {
 				throw new ProcessFailedException("Exception while applying survival rules", e);
 			}
 		}
 		else {
-			//oldVal = new ValueWrapper();
-			//oldVal.setValueBytes(req.getValue());
 			map().set(req.getMessageKey(), req);
 			setDirty(req.getMessageKey());
-			
-			//return new InputRequest(req.getKey(), oldVal.getValueBytes());
 		}
 	}
 	@PostConstruct
@@ -107,29 +105,55 @@ abstract class AbstractProcessor implements IProcessor, EntryEvictedListener<byt
 	 * 
 	 * @param flushRequests
 	 */
-	void doFlush(final List<KeyValRecord> flushRequests) {
-		//exception handling?
-		int[] result = flusher.apply(flushRequests);
-		for (int i = 0; i < result.length; i++) {
-			if(result[i] >=0 && i < flushRequests.size()) {
-				byte[] key = Utils.toAvroBytes(flushRequests.get(i).getKey());
-				resetDirty(key);
-				log.debug("----- ON_KEY_FLUSH ---- "+flushRequests.get(i).getKey());
-				notifier.sendNotification(EventType.FLUSHED_TO_STORE, flushRequests.get(i), Utils.generateKeyChecksum(key));
+	void doFlush(final List<CoalesceEntry> flushRequests) {
+		try 
+		{
+			final List<KeyValRecord> collected = flushRequests.stream()
+			.map(c -> newKeyVal(c.getKey(), c.getValue()))
+			.collect(Collectors.toList());
+			
+			int[] result = flusher.apply(collected);
+			
+			for (int i = 0; i < result.length; i++) {
+				if(i < flushRequests.size()) {
+					byte[] key = flushRequests.get(i).getKey();
+					if(result[i] >= 0) {
+						//resetDirty(key);
+						log.debug("----- ON_KEY_FLUSH ---- "+flushRequests.get(i).getKey());
+						notifier.sendNotification(EventType.FLUSHED_TO_STORE, collected.get(i), "");//meaningless to get tracing id now. it is coalesced by key
+					}
+					else {
+						setDirty(key);
+					}
+				}
+				
 			}
+		} catch (Exception e) {
+			flushRequests.forEach(c -> setDirty(c.getKey()));
+			log.error("Unhandled error on flush. Batch rejected", e);
 		}
 	}
 	private final ConcurrentMap<B, AtomicBoolean> dirtyCache = new ConcurrentHashMap<>();
-	void setDirty(byte[] bytes) {
+	/**
+	 * Set dirty state
+	 * @param bytes
+	 */
+	boolean setDirty(byte[] bytes) {
 		B b = new B(bytes);
 		if(!dirtyCache.containsKey(b)) {
 			dirtyCache.putIfAbsent(b, new AtomicBoolean(true));
 		}
 		AtomicBoolean bool = dirtyCache.get(b);
 		if (bool != null) {
-			bool.compareAndSet(false, true);
+			return bool.compareAndSet(false, true);
 		}
+		return false;
 	}
+	/**
+	 * If is dirty
+	 * @param bytes
+	 * @return
+	 */
 	boolean isDirty(byte[] bytes) {
 		B b = new B(bytes);
 		AtomicBoolean bool = dirtyCache.get(b);
@@ -138,17 +162,21 @@ abstract class AbstractProcessor implements IProcessor, EntryEvictedListener<byt
 		}
 		return false;
 	}
-	void resetDirty(byte[] bytes) {
+	/**
+	 * clear dirty state
+	 * @param bytes
+	 */
+	boolean resetDirty(byte[] bytes) {
 		B b = new B(bytes);
 		AtomicBoolean bool = dirtyCache.get(b);
 		if (bool != null) {
-			bool.compareAndSet(true, false);
+			return bool.compareAndSet(true, false);
 		}
+		return false;
 	}
 	@Override
 	public void entryEvicted(EntryEvent<byte[], DataEvent> event) {
-		log.warn("Coalesce Entry evicted: "+event.getValue().getKeyCheksum());
-		//dirtyCache.remove(new B(event.getKey()));
+		//log.warn("Coalesce Entry evicted: "+event.getValue().getKeyCheksum());
 		process(event.getValue());
 	}
 	

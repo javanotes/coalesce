@@ -13,7 +13,6 @@ import com.hazelcast.core.MapLoader;
 
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.DataEvent;
-import io.reactiveminds.datagrid.vo.KeyValRecord2;
 /**
  * 
  * Extend this class to provide an instance of {@linkplain DataLoader}

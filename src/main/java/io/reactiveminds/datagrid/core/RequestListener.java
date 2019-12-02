@@ -15,6 +15,7 @@ import com.hazelcast.map.listener.EntryUpdatedListener;
 
 import io.reactiveminds.datagrid.notif.EventType;
 import io.reactiveminds.datagrid.spi.EventsNotifier;
+import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.vo.DataEvent;
 import io.reactiveminds.datagrid.vo.ListenerConfig;
 
@@ -59,7 +60,6 @@ class RequestListener
 	}
 	
 	private void doProcess(EntryEvent<byte[], DataEvent> event, EventType type) {
-		//InputRequest req = new InputRequest(event.getKey(), event.getValue());
 		notifier.sendNotification(type, event.getValue(), config.getKeySchema(), config.getValueSchema());
 		try {
 			getProcessor().process(event.getValue());

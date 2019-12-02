@@ -6,6 +6,8 @@
 package io.reactiveminds.mock.avro;
 
 import org.apache.avro.specific.SpecificData;
+import org.apache.avro.util.Utf8;
+import org.apache.commons.compress.utils.Charsets;
 
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
@@ -42,8 +44,12 @@ public class IndividualTableKey extends org.apache.avro.specific.SpecificRecordB
   // Used by DatumReader.  Applications should not call.
   @SuppressWarnings(value="unchecked")
   public void put(int field$, java.lang.Object value$) {
+	  Object value = value$;
+		if(value$ instanceof Utf8) {
+			value = new String(((Utf8) value$).getBytes(), Charsets.UTF_8);
+		}
     switch (field$) {
-    case 0: individual_id = (java.lang.String)value$; break;
+    case 0: individual_id = (java.lang.String)value; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }

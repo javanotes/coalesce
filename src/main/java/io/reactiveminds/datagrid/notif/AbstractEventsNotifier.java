@@ -60,6 +60,6 @@ abstract class AbstractEventsNotifier implements ApplicationListener<EventNotifi
 	 */
 	@Override
 	public void sendNotification(EventType event, DataEvent rec, Schema k, Schema v) {
-		sendNotification(event, null, rec.getKeyCheksum());
+		sendNotification(event, null, rec.getUid());
 	}
 }

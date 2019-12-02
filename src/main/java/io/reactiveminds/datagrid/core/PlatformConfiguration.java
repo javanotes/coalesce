@@ -29,8 +29,9 @@ import com.hazelcast.core.HazelcastInstance;
 import io.reactiveminds.datagrid.notif.KafkaNotifier;
 import io.reactiveminds.datagrid.notif.LoggingNotifier;
 import io.reactiveminds.datagrid.spi.ConfigRegistry;
-import io.reactiveminds.datagrid.spi.GridContext;
 import io.reactiveminds.datagrid.spi.EventsNotifier;
+import io.reactiveminds.datagrid.spi.GridContext;
+import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.spi.IngestionService;
 import io.reactiveminds.datagrid.vo.ListenerConfig;
 
@@ -43,7 +44,7 @@ public class PlatformConfiguration implements ApplicationContextAware{
 	private int tpoolSize;
 	@Bean
 	ConfigRegistry bootCore() {
-		return new BootCore();
+		return new DefaultConfigRegistry();
 	}
 	@Bean
 	@Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -117,4 +118,5 @@ public class PlatformConfiguration implements ApplicationContextAware{
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		ctx = applicationContext;
 	}
+	
 }

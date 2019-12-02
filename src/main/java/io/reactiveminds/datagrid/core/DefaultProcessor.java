@@ -7,7 +7,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.avro.Schema;
 import org.slf4j.Logger;
@@ -17,7 +16,6 @@ import io.reactiveminds.datagrid.err.ProcessFailedException;
 import io.reactiveminds.datagrid.notif.EventType;
 import io.reactiveminds.datagrid.vo.CoalesceEntry;
 import io.reactiveminds.datagrid.vo.DataEvent;
-import io.reactiveminds.datagrid.vo.KeyValRecord;
 
 class DefaultProcessor extends AbstractProcessor {
 	private static final Logger log = LoggerFactory.getLogger("DefaultProcessor");
@@ -70,25 +68,20 @@ class DefaultProcessor extends AbstractProcessor {
 	@Override
 	public void flush() {
 		Lock wLock = rwLock.writeLock();
-		final List<KeyValRecord> flushRequests = new LinkedList<>();
+		final List<CoalesceEntry> flushRequests = new LinkedList<>();
 		wLock.lock();
 		try {
 			
-			Stream<CoalesceEntry> stream = map().localKeySet().parallelStream()
-			.map(k -> new CoalesceEntry(k, map().get(k).getMessageValue()));
+			List<CoalesceEntry> stream = map().localKeySet().parallelStream()
+			.map(k -> new CoalesceEntry(k, map().get(k).getMessageValue()))
+			.filter(c -> resetDirty(c.getKey())).collect(Collectors.toList());
 			
-			List<KeyValRecord> collected = stream.filter(c -> isDirty(c.getKey()))
-			.map(c -> newKeyVal(c.getKey(), c.getValue()))
-			.collect(Collectors.toList());
-			
-			flushRequests.addAll(collected);
+			flushRequests.addAll(stream);
 			
 		}
 		finally {
 			wLock.unlock();
 		}
-		//do we stay inside write lock?
-		//is there a chance of load in the meantime?
 		if (!flushRequests.isEmpty()) {
 			doFlush(flushRequests);
 		}

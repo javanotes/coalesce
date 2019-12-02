@@ -6,10 +6,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,14 +30,16 @@ import com.hazelcast.core.HazelcastInstance;
 
 import io.reactiveminds.datagrid.api.DataLoader;
 import io.reactiveminds.datagrid.err.ConfigurationException;
+import io.reactiveminds.datagrid.err.FlushFailedException;
 import io.reactiveminds.datagrid.spi.ConfigRegistry;
+import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.util.ThrowingLambdaFunc;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.ListenerConfig;
 
-class BootCore implements DisposableBean, ConfigRegistry{
+class DefaultConfigRegistry implements DisposableBean, ConfigRegistry{
 
-	private static final Logger log = LoggerFactory.getLogger("BootCore");
+	private static final Logger log = LoggerFactory.getLogger("DefaultConfigRegistry");
 	@Autowired
 	ListableBeanFactory beans;
 	@Autowired
@@ -48,14 +52,19 @@ class BootCore implements DisposableBean, ConfigRegistry{
 	@Value("${coalesce.core.listenerConfigDir}")
 	private String listenerConfigDir;
 	
-	private class ListenerSetup implements Runnable,DisposableBean{
+	private class ListenerContainer implements Runnable,DisposableBean{
 
-		private String id;
+		private String hzListenerId;
 		private MessageListenerContainer container;
 		private final ListenerConfig cfg;
 		private ScheduledFuture<?> future;
-		
-		public ListenerSetup(ListenerConfig cfg) 
+		String getConfigName() {
+			return cfg.getName();
+		}
+		IProcessor getProcessor() {
+			return listener.getProcessor();
+		}
+		public ListenerContainer(ListenerConfig cfg) 
 		{
 			this.cfg = cfg;
 			try {
@@ -96,10 +105,11 @@ class BootCore implements DisposableBean, ConfigRegistry{
 				throw new IllegalArgumentException("No matching survivalRule bean found: "+ cfg.getSurvivalRule());
 		}
 
+		private RequestListener listener;
 		@Override
 		public void run() {
-			RequestListener listener = beans.getBean(RequestListener.class, cfg);
-			id = hz.getMap(cfg.getRequestMap()).addLocalEntryListener(listener);
+			listener = beans.getBean(RequestListener.class, cfg);
+			hzListenerId = hz.getMap(cfg.getRequestMap()).addLocalEntryListener(listener);
 			
 			if (container != null) {
 				container.start();
@@ -112,7 +122,7 @@ class BootCore implements DisposableBean, ConfigRegistry{
 				}
 			}, new CronTrigger(cfg.getFlushSchedule()));
 			
-			log.info("["+cfg.getName()+"] Processor running:" +(container != null ? " with incoming topic - "+cfg.getRequestTopic()+", " : "")
+			log.info("|[ "+cfg.getName()+" ]| Processor running: " +(container != null ? " with incoming topic - "+cfg.getRequestTopic()+", " : "")
 					+ "listening on entry map - "+cfg.getRequestMap()+" for coalesce map - "+cfg.getCoalesceMap());
 		}
 
@@ -121,7 +131,7 @@ class BootCore implements DisposableBean, ConfigRegistry{
 			if (container != null) {
 				container.stop();
 			}
-			hz.getMap(cfg.getRequestMap()).removeEntryListener(id);
+			hz.getMap(cfg.getRequestMap()).removeEntryListener(hzListenerId);
 			future.cancel(true);
 		}
 		
@@ -133,26 +143,59 @@ class BootCore implements DisposableBean, ConfigRegistry{
 		}
 		return null;
 	}
-	private final List<ListenerSetup> configs = new LinkedList<>();
+	private final List<ListenerContainer> listenerRegistry = new LinkedList<>();
 	private Map<String, ListenerConfig> configMap;
+	private Map<String, ListenerContainer> listenerMap;
 	/**
 	 * 
 	 */
 	public void destroy() {
-		configs.forEach(ListenerSetup::destroy);
+		listenerRegistry.forEach(ListenerContainer::destroy);
 	}
 	@PostConstruct
 	void setup() {
 		
-		configs.addAll(ListenerConfig.loadAll(listenerConfigDir).stream().map( ThrowingLambdaFunc.throwsConfigurationException(ListenerSetup::new, "Invalid listener configuration") ).collect(Collectors.toList()));
-		configMap = Collections.unmodifiableMap( configs.stream().collect(Collectors.toMap(l -> l.cfg.getName(), l -> l.cfg)) );
-		
-		for(ListenerSetup config : configs) {
+		listenerRegistry.addAll(ListenerConfig.loadAll(listenerConfigDir).stream().map( ThrowingLambdaFunc.throwsConfigurationException(ListenerContainer::new, "Invalid listener configuration") ).collect(Collectors.toList()));
+		configMap = Collections.unmodifiableMap( listenerRegistry.stream().collect(Collectors.toMap(l -> l.cfg.getName(), l -> l.cfg)) );
+		listenerMap = listenerRegistry.stream().collect(Collectors.toMap(ListenerContainer::getConfigName, Function.identity()));
+				
+		for(ListenerContainer config : listenerRegistry) {
 			config.run();
 		}
 	}
 	@Override
 	public String getTracingId(GenericRecord k) {
 		return Utils.generateKeyChecksum(Utils.toAvroBytes(k));
+	}
+	@Override
+	public Schema getKeySchema(String listenerConfig) {
+		if(configMap.containsKey(listenerConfig)) {
+			return configMap.get(listenerConfig).getKeySchema();
+		}
+		return null;
+	}
+	@Override
+	public String getCoalesceMap(String listenerConfig) {
+		if(configMap.containsKey(listenerConfig)) {
+			return configMap.get(listenerConfig).getCoalesceMap();
+		}
+		return null;
+	}
+	@Override
+	public Schema getValueSchema(String listenerConfig) {
+		if(configMap.containsKey(listenerConfig)) {
+			return configMap.get(listenerConfig).getValueSchema();
+		}
+		return null;
+	}
+	@Override
+	public void executeFlush(String listenerConfig) {
+		if(listenerMap.containsKey(listenerConfig)) {
+			try {
+				listenerMap.get(listenerConfig).getProcessor().flush();
+			} catch (IOException e) {
+				throw new FlushFailedException("", e);	
+			}
+		}
 	}
 }

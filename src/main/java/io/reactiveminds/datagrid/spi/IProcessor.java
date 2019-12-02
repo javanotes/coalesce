@@ -1,4 +1,4 @@
-package io.reactiveminds.datagrid.core;
+package io.reactiveminds.datagrid.spi;
 
 import java.io.Flushable;
 

@@ -1,8 +1,8 @@
-package io.reactiveminds.datagrid.vo;
+package io.reactiveminds.datagrid.api;
 
 import org.apache.avro.generic.GenericRecord;
 
-public class KeyValRecord2 {
+class KeyValRecord2 {
 
 	public byte[] getKey() {
 		return key;

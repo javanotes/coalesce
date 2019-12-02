@@ -18,8 +18,8 @@ public class DataEvent implements DataSerializable {
 
 	@Override
 	public String toString() {
-		return "DataEvent [messageKey.size=" + messageKey.length + ", messageValue.size="
-				+ messageValue.length + ", keyCheksum=" + keyCheksum + ", valueCheksum=" + valueCheksum
+		return "DataEvent [uid=" + uid + ", size="
+				+ size() + ", keyCheksum=" + keyCheksum + ", valueCheksum=" + valueCheksum
 				+ ", originTime=" + originTime + ", ingressTime=" + ingressTime + ", loaded=" + loaded + "]";
 	}
 
@@ -70,6 +70,7 @@ public class DataEvent implements DataSerializable {
 	private long originTime;
 	private long ingressTime;
 	private boolean loaded;
+	private String uid;
 	
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
@@ -80,6 +81,7 @@ public class DataEvent implements DataSerializable {
 		out.writeLong(ingressTime);
 		out.writeLong(originTime);
 		out.writeBoolean(loaded);
+		out.writeUTF(uid);
 	}
 
 	@Override
@@ -91,6 +93,7 @@ public class DataEvent implements DataSerializable {
 		setIngressTime(in.readLong());
 		setOriginTime(in.readLong());
 		setLoaded(in.readBoolean());
+		setUid(in.readUTF());
 	}
 
 	public int size() {
@@ -103,6 +106,14 @@ public class DataEvent implements DataSerializable {
 
 	public void setLoaded(boolean loaded) {
 		this.loaded = loaded;
+	}
+
+	public String getUid() {
+		return uid;
+	}
+
+	public void setUid(String uid) {
+		this.uid = uid;
 	}
 
 }
