@@ -19,7 +19,7 @@ import io.reactiveminds.datagrid.spi.IngestionService;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.DataEvent;
 
-class DefaultIngestionService implements IngestionService {
+public class DefaultIngestionService implements IngestionService {
 
 	private static final Logger log = LoggerFactory.getLogger("DefaultIngestionService");
 	@Autowired

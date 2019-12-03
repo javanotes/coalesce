@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
 
-import io.reactiveminds.datagrid.core.PlatformConfiguration;
+import io.reactiveminds.datagrid.PlatformConfiguration;
 import io.reactiveminds.datagrid.spi.EventsNotifier;
 import io.reactiveminds.datagrid.vo.DataEvent;
 import io.reactiveminds.datagrid.vo.KeyValRecord;

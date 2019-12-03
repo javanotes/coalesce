@@ -1,4 +1,4 @@
-package io.reactiveminds.datagrid.core;
+package io.reactiveminds.datagrid;
 
 import java.io.IOException;
 import java.net.URL;
@@ -26,11 +26,16 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
 
+import io.reactiveminds.datagrid.api.GridContext;
+import io.reactiveminds.datagrid.core.DefaultConfigRegistry;
+import io.reactiveminds.datagrid.core.DefaultIngestionService;
+import io.reactiveminds.datagrid.core.DefaultProcessor;
+import io.reactiveminds.datagrid.core.GridContextProxy;
+import io.reactiveminds.datagrid.core.RequestListener;
 import io.reactiveminds.datagrid.notif.KafkaNotifier;
 import io.reactiveminds.datagrid.notif.LoggingNotifier;
 import io.reactiveminds.datagrid.spi.ConfigRegistry;
 import io.reactiveminds.datagrid.spi.EventsNotifier;
-import io.reactiveminds.datagrid.spi.GridContext;
 import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.spi.IngestionService;
 import io.reactiveminds.datagrid.vo.ListenerConfig;

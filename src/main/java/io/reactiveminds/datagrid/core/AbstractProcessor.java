@@ -21,10 +21,10 @@ import com.hazelcast.core.IMap;
 import com.hazelcast.map.listener.EntryEvictedListener;
 
 import io.reactiveminds.datagrid.api.FlushHandler;
+import io.reactiveminds.datagrid.api.GridContext;
 import io.reactiveminds.datagrid.api.SurvivorRule;
 import io.reactiveminds.datagrid.err.ProcessFailedException;
 import io.reactiveminds.datagrid.notif.EventType;
-import io.reactiveminds.datagrid.spi.GridContext;
 import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.spi.EventsNotifier;
 import io.reactiveminds.datagrid.util.Utils;

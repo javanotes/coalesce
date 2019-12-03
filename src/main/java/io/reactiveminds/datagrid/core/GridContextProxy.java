@@ -7,11 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
-import io.reactiveminds.datagrid.spi.GridContext;
+import io.reactiveminds.datagrid.api.GridContext;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.DataEvent;
 
-class GridContextProxy implements GridContext {
+public class GridContextProxy implements GridContext {
 
 	@Autowired
 	HazelcastInstance hz;

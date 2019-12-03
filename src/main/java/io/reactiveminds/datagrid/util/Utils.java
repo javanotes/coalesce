@@ -46,7 +46,6 @@ import com.fasterxml.jackson.dataformat.avro.schema.AvroSchemaGenerator;
 
 import io.confluent.avro.random.generator.Generator;
 import io.reactiveminds.datagrid.err.ConfigurationException;
-import io.reactiveminds.mock.avro.IndividualTable;
 
 public class Utils {
 	@SuppressWarnings("unchecked")
@@ -260,16 +259,6 @@ public class Utils {
 		} catch (IOException e) {
 			throw new UncheckedIOException("decode from bytes", e);
 		}
-	}
-	
-	public static void main(String[] args) throws IOException {
-		GenericRecord rec = randomAvroRecord(loadSchema("classpath:avro/eldm_individual.avsc"));
-		System.out.println(rec.toString());
-		IndividualTable ind = genericToSpecific(rec);
-		System.out.println(ind.getIndividualId());
-		
-		GenericRecord rec2 = specificToGeneric(ind);
-		System.out.println(rec2.toString());
 	}
 	
 	public static Schema loadSchema(String file) throws IOException {

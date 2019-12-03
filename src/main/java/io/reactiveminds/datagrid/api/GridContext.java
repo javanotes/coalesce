@@ -1,4 +1,4 @@
-package io.reactiveminds.datagrid.spi;
+package io.reactiveminds.datagrid.api;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;

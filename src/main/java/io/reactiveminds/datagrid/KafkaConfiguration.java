@@ -1,4 +1,4 @@
-package io.reactiveminds.datagrid.core;
+package io.reactiveminds.datagrid;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +25,7 @@ import org.springframework.kafka.listener.MessageListenerContainer;
 import com.hazelcast.internal.serialization.impl.ConstantSerializers.StringSerializer;
 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+import io.reactiveminds.datagrid.core.RequestConsumer;
 
 @Configuration
 public class KafkaConfiguration {

@@ -24,7 +24,7 @@ import io.reactiveminds.datagrid.vo.ListenerConfig;
  * @author sdalui
  *
  */
-class RequestListener
+public class RequestListener
 		implements EntryAddedListener<byte[], DataEvent>, EntryUpdatedListener<byte[], DataEvent>, EntryEvictedListener<byte[], DataEvent> {
 	
 	public RequestListener(ListenerConfig config) {

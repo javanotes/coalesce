@@ -1,8 +1,6 @@
 package io.reactiveminds.datagrid.api;
 
 import org.apache.avro.generic.GenericRecord;
-
-import io.reactiveminds.datagrid.spi.GridContext;
 @FunctionalInterface
 public interface SurvivorRule {
 	/**

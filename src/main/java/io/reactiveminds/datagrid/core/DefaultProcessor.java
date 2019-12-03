@@ -17,7 +17,7 @@ import io.reactiveminds.datagrid.notif.EventType;
 import io.reactiveminds.datagrid.vo.CoalesceEntry;
 import io.reactiveminds.datagrid.vo.DataEvent;
 
-class DefaultProcessor extends AbstractProcessor {
+public class DefaultProcessor extends AbstractProcessor {
 	private static final Logger log = LoggerFactory.getLogger("DefaultProcessor");
 	/**
 	 * 

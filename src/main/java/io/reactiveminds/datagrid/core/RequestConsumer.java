@@ -11,7 +11,7 @@ import org.springframework.kafka.listener.ConsumerAwareMessageListener;
 
 import io.reactiveminds.datagrid.spi.IngestionService;
 
-class RequestConsumer implements ConsumerAwareMessageListener<GenericRecord, GenericRecord> {
+public class RequestConsumer implements ConsumerAwareMessageListener<GenericRecord, GenericRecord> {
 	private static final Logger log = LoggerFactory.getLogger("RequestConsumer");
 	@Autowired
 	IngestionService ingestService;

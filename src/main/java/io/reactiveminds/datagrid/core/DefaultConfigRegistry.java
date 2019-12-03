@@ -36,7 +36,7 @@ import io.reactiveminds.datagrid.util.ThrowingLambdaFunc;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.ListenerConfig;
 
-class DefaultConfigRegistry implements DisposableBean, ConfigRegistry{
+public class DefaultConfigRegistry implements DisposableBean, ConfigRegistry{
 
 	private static final Logger log = LoggerFactory.getLogger("DefaultConfigRegistry");
 	@Autowired
