@@ -73,7 +73,8 @@ public class DefaultProcessor extends AbstractProcessor {
 		try {
 			
 			List<CoalesceEntry> stream = map().localKeySet().parallelStream()
-			.map(k -> new CoalesceEntry(k, map().get(k).getMessageValue()))
+			.map(k -> map().get(k))
+			.map(d -> new CoalesceEntry(d.getMessageKey(), d.getMessageValue(), d.isMarkDelete()))
 			.filter(c -> resetDirty(c.getKey())).collect(Collectors.toList());
 			
 			flushRequests.addAll(stream);

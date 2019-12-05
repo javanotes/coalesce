@@ -13,11 +13,17 @@ public class CoalesceEntry {
 	 * @param key
 	 * @param value
 	 */
-	public CoalesceEntry(byte[] key, byte[] value) {
+	public CoalesceEntry(byte[] key, byte[] value, boolean delete) {
 		super();
 		this.key = key;
 		this.value = value;
+		this.delete = delete;
 	}
 	final byte[] key;
 	final byte[] value;
+	final boolean delete;
+	public boolean isDelete() {
+		return delete;
+	}
+	
 }

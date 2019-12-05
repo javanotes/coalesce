@@ -7,13 +7,13 @@ public enum EventType {
 	MESSAGE_CREATE {
 		@Override
 		public String level() {
-			return Level.INFO.name();
+			return Level.DEBUG.name();
 		}
 	},
 	MESSAGE_RECEIPT {
 		@Override
 		public String level() {
-			return Level.DEBUG.name();		}
+			return Level.INFO.name();		}
 	},
 	MESSAGE_REPEAT {
 		@Override

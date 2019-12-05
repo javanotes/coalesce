@@ -78,23 +78,29 @@ abstract class AbstractProcessor implements IProcessor, EntryEvictedListener<byt
 	 */
 	protected void applyAndSet(DataEvent req) {
 		DataEvent oldVal = map().get(req.getMessageKey());
-		if(oldVal != null) {
-			try {
-				GenericRecord merged = rule.merge(Utils.fromAvroBytes(oldVal.getMessageValue(), valSchema), Utils.fromAvroBytes(req.getMessageValue(), valSchema), gridContext);
+		try {
+			GenericRecord merged = rule.merge(oldVal != null ? Utils.fromAvroBytes(oldVal.getMessageValue(), valSchema) : null, Utils.fromAvroBytes(req.getMessageValue(), valSchema), gridContext);
+			if (merged != null) {
 				oldVal.setMessageValue(Utils.toAvroBytes(merged));
 				oldVal.setValueCheksum(Utils.generateValueChecksum(oldVal.getMessageValue()));
 				oldVal.setLoaded(false);
 				map().set(req.getMessageKey(), oldVal);
-				setDirty(req.getMessageKey());
-				
-			} 
-			catch (Exception e) {
-				throw new ProcessFailedException("Exception while applying survival rules", e);
 			}
-		}
-		else {
-			map().set(req.getMessageKey(), req);
+			else {
+				//deletion as merge() returned null
+				if(oldVal != null) {
+					oldVal.setMarkDelete(true);
+					map().set(req.getMessageKey(), oldVal);
+				}
+				else {
+					req.setMarkDelete(true);
+					map().set(req.getMessageKey(), req);
+				}
+			}
 			setDirty(req.getMessageKey());
+		} 
+		catch (Exception e) {
+			throw new ProcessFailedException("Exception while applying survival rules", e);
 		}
 	}
 	@PostConstruct
@@ -109,8 +115,16 @@ abstract class AbstractProcessor implements IProcessor, EntryEvictedListener<byt
 		try 
 		{
 			final List<KeyValRecord> collected = flushRequests.stream()
+			.filter(e -> !e.isDelete())
 			.map(c -> newKeyVal(c.getKey(), c.getValue()))
 			.collect(Collectors.toList());
+			
+			final List<KeyValRecord> deleteList = flushRequests.stream()
+					.filter(e -> e.isDelete())
+					.map(c -> newKeyVal(c.getKey(), null))
+					.collect(Collectors.toList());
+			
+			collected.addAll(deleteList);
 			
 			int[] result = flusher.apply(collected);
 			

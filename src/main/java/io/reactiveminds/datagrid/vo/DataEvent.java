@@ -71,6 +71,7 @@ public class DataEvent implements DataSerializable {
 	private long ingressTime;
 	private boolean loaded;
 	private String uid;
+	private boolean markDelete;
 	
 	@Override
 	public void writeData(ObjectDataOutput out) throws IOException {
@@ -82,6 +83,7 @@ public class DataEvent implements DataSerializable {
 		out.writeLong(originTime);
 		out.writeBoolean(loaded);
 		out.writeUTF(uid);
+		out.writeBoolean(markDelete);
 	}
 
 	@Override
@@ -94,6 +96,7 @@ public class DataEvent implements DataSerializable {
 		setOriginTime(in.readLong());
 		setLoaded(in.readBoolean());
 		setUid(in.readUTF());
+		setMarkDelete(in.readBoolean());
 	}
 
 	public int size() {
@@ -114,6 +117,14 @@ public class DataEvent implements DataSerializable {
 
 	public void setUid(String uid) {
 		this.uid = uid;
+	}
+
+	public boolean isMarkDelete() {
+		return markDelete;
+	}
+
+	public void setMarkDelete(boolean markDelete) {
+		this.markDelete = markDelete;
 	}
 
 }

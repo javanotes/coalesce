@@ -21,7 +21,7 @@ public interface ConfigRegistry {
 	 * @param key
 	 * @return
 	 */
-	String getTracingId(GenericRecord k);
+	String getKeyTracingId(GenericRecord k);
 	/**
 	 * 
 	 * @param listenerConfig

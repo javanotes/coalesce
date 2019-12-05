@@ -163,7 +163,7 @@ public class DefaultConfigRegistry implements DisposableBean, ConfigRegistry{
 		}
 	}
 	@Override
-	public String getTracingId(GenericRecord k) {
+	public String getKeyTracingId(GenericRecord k) {
 		return Utils.generateKeyChecksum(Utils.toAvroBytes(k));
 	}
 	@Override
