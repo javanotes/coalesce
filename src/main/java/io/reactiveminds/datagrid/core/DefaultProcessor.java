@@ -17,7 +17,7 @@ import io.reactiveminds.datagrid.notif.EventType;
 import io.reactiveminds.datagrid.vo.CoalesceEntry;
 import io.reactiveminds.datagrid.vo.DataEvent;
 
-public class DefaultProcessor extends AbstractProcessor {
+class DefaultProcessor extends AbstractProcessor {
 	private static final Logger log = LoggerFactory.getLogger("DefaultProcessor");
 	/**
 	 * 
@@ -46,7 +46,7 @@ public class DefaultProcessor extends AbstractProcessor {
 			if(locked) {
 				try {
 					applyAndSet(req);
-					notifier.sendNotification(EventType.APPLIED_TO_GRID, req, keySchema, valSchema);
+					notifier.sendNotification(EventType.COALESCE, req, keySchema, valSchema);
 					log.debug("----- ON_APPLY_SET ----");
 				}
 				finally {

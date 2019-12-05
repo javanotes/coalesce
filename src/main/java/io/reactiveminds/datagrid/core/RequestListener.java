@@ -24,7 +24,7 @@ import io.reactiveminds.datagrid.vo.ListenerConfig;
  * @author sdalui
  *
  */
-public class RequestListener
+class RequestListener
 		implements EntryAddedListener<byte[], DataEvent>, EntryUpdatedListener<byte[], DataEvent>, EntryEvictedListener<byte[], DataEvent> {
 	
 	public RequestListener(ListenerConfig config) {
@@ -52,7 +52,7 @@ public class RequestListener
 	@Override
 	public void entryAdded(EntryEvent<byte[], DataEvent> event) {
 		log.debug("----- ON_MESSAGE_RECEIPT ----");
-		doProcess(event, EventType.MESSAGE_RECEIPT);
+		doProcess(event, EventType.RECEIPT);
 		log.debug("coalesce done ..");
 	}
 	IProcessor getProcessor() {
@@ -70,6 +70,6 @@ public class RequestListener
 	}
 	@Override
 	public void entryEvicted(EntryEvent<byte[], DataEvent> event) {
-		doProcess(event, EventType.MESSAGE_REPEAT);
+		doProcess(event, EventType.REPEAT);
 	}
 }

@@ -128,13 +128,22 @@ abstract class AbstractProcessor implements IProcessor, EntryEvictedListener<byt
 			
 			int[] result = flusher.apply(collected);
 			
+			CoalesceEntry entry = null;
 			for (int i = 0; i < result.length; i++) {
 				if(i < flushRequests.size()) {
-					byte[] key = flushRequests.get(i).getKey();
+					entry = flushRequests.get(i);
+					byte[] key = entry.getKey();
+					
+					if(entry.isDelete()) {
+						//don't know what the return code will be
+						map().remove(key);
+						notifier.sendNotification(EventType.DELETED, collected.get(i), "");
+						continue;
+					}
 					if(result[i] >= 0) {
 						//resetDirty(key);
-						log.debug("----- ON_KEY_FLUSH ---- "+flushRequests.get(i).getKey());
-						notifier.sendNotification(EventType.FLUSHED_TO_STORE, collected.get(i), "");//meaningless to get tracing id now. it is coalesced by key
+						log.debug("----- ON_KEY_FLUSH ---- "+entry.getKey());
+						notifier.sendNotification(EventType.SAVED, collected.get(i), "");//meaningless to get tracing id now. it is coalesced by key
 					}
 					else {
 						setDirty(key);

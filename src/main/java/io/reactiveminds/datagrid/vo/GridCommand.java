@@ -1,9 +1,9 @@
-package io.reactiveminds.datagrid.client;
+package io.reactiveminds.datagrid.vo;
 
 import java.io.Serializable;
 
 public class GridCommand implements Serializable {
-
+	//feeling lazy to make it DataSerializable
 	public GridCommand(Command command, String args) {
 		super();
 		this.command = command;

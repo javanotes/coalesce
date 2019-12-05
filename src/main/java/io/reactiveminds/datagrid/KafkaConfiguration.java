@@ -20,13 +20,18 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ConsumerAwareMessageListener;
 import org.springframework.kafka.listener.MessageListenerContainer;
 
 import com.hazelcast.internal.serialization.impl.ConstantSerializers.StringSerializer;
 
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.reactiveminds.datagrid.core.RequestConsumer;
-
+/**
+ * Kafka configuration. Override {@link #ingestionConsumer(String)} to provide
+ * a custom stream consumer.
+ * @author sdalui
+ *
+ */
 @Configuration
 public class KafkaConfiguration {
 
@@ -36,12 +41,7 @@ public class KafkaConfiguration {
 	private String schemaRegistryUrl;
 	@Value("${coalesce.kafka.consumerConcurrency:1}")
 	private int concurrency;
-	@Bean
-	@Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	@Lazy
-	RequestConsumer requestConsumer(String imap) {
-		return new RequestConsumer(imap);
-	}
+	
 	@Bean
 	KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<GenericRecord, GenericRecord>> kafkaListenerContainerFactory() {
 		ConcurrentKafkaListenerContainerFactory<GenericRecord, GenericRecord> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -62,11 +62,23 @@ public class KafkaConfiguration {
 	@Lazy
 	MessageListenerContainer kafkaConsumer(String topic, String requestMap) {
 	    ConcurrentMessageListenerContainer<GenericRecord, GenericRecord> container = kafkaListenerContainerFactory().createContainer(topic);
-	    container.setupMessageListener(requestConsumer(requestMap));
+	    container.setupMessageListener(ingestionConsumer(requestMap));
 	    container.setBeanName("kafkaConsumer."+requestMap);
 	    container.setConcurrency(concurrency);
 	    container.getContainerProperties().setGroupId(topic+"_"+requestMap);
 	    return container;
+	}
+	
+	/**
+	 * Override to provide custom Kafka consumer
+	 * @param imap
+	 * @return
+	 */
+	@Bean
+	@Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	@Lazy
+	protected ConsumerAwareMessageListener<GenericRecord, GenericRecord> ingestionConsumer(String imap) {
+		return new IngestionConsumer(imap);
 	}
 
     @Bean

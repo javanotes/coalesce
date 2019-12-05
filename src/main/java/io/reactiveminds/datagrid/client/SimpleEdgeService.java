@@ -5,7 +5,6 @@ import static spark.Spark.post;
 import static spark.Spark.stop;
 import static spark.Spark.threadPool;
 
-import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 
 import javax.annotation.PostConstruct;
@@ -21,22 +20,21 @@ import org.springframework.stereotype.Component;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
 
-import io.reactiveminds.datagrid.client.GridCommand.Command;
-import io.reactiveminds.datagrid.err.FlushFailedException;
 import io.reactiveminds.datagrid.spi.ConfigRegistry;
-import io.reactiveminds.datagrid.spi.EdgeService;
-import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.DataEvent;
+import io.reactiveminds.datagrid.vo.GridCommand;
+import io.reactiveminds.datagrid.vo.GridCommand.Command;
 import spark.Request;
 import spark.Response;
-
+/**
+ * Optional component. Should be moved to a dedicated edge node in client mode.
+ * @author sdalui
+ *
+ */
 @Component
-class SimpleEdgeService implements EdgeService, MessageListener<GridCommand> {
+public class SimpleEdgeService {
 
 	private static final Logger log = LoggerFactory.getLogger("EdgeService");
 	
@@ -46,13 +44,13 @@ class SimpleEdgeService implements EdgeService, MessageListener<GridCommand> {
 	private int maxThreads;
 
 	private Lock lock;
+	@SuppressWarnings("deprecation")
 	private void acquireLock() {
 		lock = hz.getLock("GridClient");
 		lock.lock();
 	}
 	@PostConstruct
 	void init() {
-		initListener();
 		new Thread("Api.Listener.Acquirer") {
 			@Override
 			public void run() {
@@ -60,11 +58,7 @@ class SimpleEdgeService implements EdgeService, MessageListener<GridCommand> {
 			}
 		}.start();
 	}
-	private ITopic<GridCommand> commandTopic;
-	private void initListener() {
-		commandTopic = hz.getTopic("GridClient");
-		commandTopic.addMessageListener(this);
-	}
+	
 	private void initServer() {
 		acquireLock();
 		port(port);
@@ -112,7 +106,6 @@ class SimpleEdgeService implements EdgeService, MessageListener<GridCommand> {
 	}
 	@Autowired
 	HazelcastInstance hz;
-	@Override
 	public DataEvent get(String imap, GenericRecord key) {
 		IMap<byte[], DataEvent> map = hz.getMap(imap);
 		return map.get(Utils.toAvroBytes(key));
@@ -120,32 +113,10 @@ class SimpleEdgeService implements EdgeService, MessageListener<GridCommand> {
 	}
 	@Autowired
 	ConfigRegistry configRegistry;
-	@Override
 	public String search(String imap, String jsonPathQry) {
 		throw new UnsupportedOperationException("TBD");
 	}
-	@Override
 	public void flush(String listenerCfg) {
-		commandTopic.publish(new GridCommand(Command.FLUSH, listenerCfg));
+		configRegistry.submitCommand(new GridCommand(Command.FLUSH, listenerCfg));
 	}
-	@Override
-	public void onMessage(Message<GridCommand> message) {
-		GridCommand cmd = message.getMessageObject();
-		switch(cmd.getCommand()) {
-			case FLUSH:
-				IProcessor processor = configRegistry.getProcessor(cmd.getArgs());
-				if(processor != null) {
-					try {
-						processor.flush();
-					} catch (IOException e) {
-						log.error("Exception on grid command", new FlushFailedException("Flush trigger failed", e));
-					}
-				}
-				break;
-			default:
-				break;
-		
-		}
-	}
-
 }

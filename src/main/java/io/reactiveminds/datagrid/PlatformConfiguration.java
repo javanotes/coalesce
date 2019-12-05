@@ -3,17 +3,14 @@ package io.reactiveminds.datagrid;
 import java.io.IOException;
 import java.net.URL;
 
-import org.apache.avro.Schema;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.autoconfigure.hazelcast.HazelcastProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.io.Resource;
@@ -26,20 +23,12 @@ import com.hazelcast.config.Config;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.HazelcastInstance;
 
-import io.reactiveminds.datagrid.api.GridContext;
-import io.reactiveminds.datagrid.core.DefaultConfigRegistry;
-import io.reactiveminds.datagrid.core.DefaultIngestionService;
-import io.reactiveminds.datagrid.core.DefaultProcessor;
-import io.reactiveminds.datagrid.core.GridContextProxy;
-import io.reactiveminds.datagrid.core.RequestListener;
+import io.reactiveminds.datagrid.core.CoreConfiguration;
 import io.reactiveminds.datagrid.notif.KafkaNotifier;
 import io.reactiveminds.datagrid.notif.LoggingNotifier;
-import io.reactiveminds.datagrid.spi.ConfigRegistry;
 import io.reactiveminds.datagrid.spi.EventsNotifier;
-import io.reactiveminds.datagrid.spi.IProcessor;
-import io.reactiveminds.datagrid.spi.IngestionService;
-import io.reactiveminds.datagrid.vo.ListenerConfig;
 
+@Import(CoreConfiguration.class)
 @Configuration
 public class PlatformConfiguration implements ApplicationContextAware{
 	
@@ -47,16 +36,7 @@ public class PlatformConfiguration implements ApplicationContextAware{
 	private int poolSize;
 	@Value("${coalesce.events.poolSize:2}")
 	private int tpoolSize;
-	@Bean
-	ConfigRegistry bootCore() {
-		return new DefaultConfigRegistry();
-	}
-	@Bean
-	@Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	@Lazy
-	RequestListener entryListener(ListenerConfig config) {
-		return new RequestListener(config);
-	}
+	
 	@Bean
 	Config hazelcastConfig(HazelcastProperties properties) throws IOException {
 		Resource configLocation = properties.resolveConfigLocation();
@@ -88,20 +68,6 @@ public class PlatformConfiguration implements ApplicationContextAware{
 		return exec;
 	}
 	
-	@Bean
-	@Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-	@Lazy
-	IProcessor processor(Schema keySchema, Schema valSchema, String imap) {
-		return new DefaultProcessor(keySchema, valSchema, imap);
-	}
-	@Bean
-	IngestionService ingestService() {
-		return new DefaultIngestionService();
-	}
-	@Bean 
-	GridContext grid() {
-		return new GridContextProxy();
-	}
 	@Value("${coalesce.core.notification:")
 	private String type;
     @Bean

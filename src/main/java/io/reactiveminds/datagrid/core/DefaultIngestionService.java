@@ -19,7 +19,7 @@ import io.reactiveminds.datagrid.spi.IngestionService;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.DataEvent;
 
-public class DefaultIngestionService implements IngestionService {
+class DefaultIngestionService implements IngestionService {
 
 	private static final Logger log = LoggerFactory.getLogger("DefaultIngestionService");
 	@Autowired
@@ -44,7 +44,7 @@ public class DefaultIngestionService implements IngestionService {
 		UUID u = new UUID(System.nanoTime(), idGen.newId());
 		event.setUid(u.toString());
 		
-		notifier.sendNotification(EventType.MESSAGE_CREATE, event.getUid());
+		notifier.sendNotification(EventType.CREATE, event.getUid());
 		
 		map.set(event.getMessageKey(), event);//TODO: ttl?
 		log.debug("acknowledge to request map: "+requestMap);

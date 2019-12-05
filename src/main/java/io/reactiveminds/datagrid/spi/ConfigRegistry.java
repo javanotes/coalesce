@@ -3,6 +3,8 @@ package io.reactiveminds.datagrid.spi;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 
+import io.reactiveminds.datagrid.vo.GridCommand;
+
 public interface ConfigRegistry {
 	/**
 	 * 
@@ -35,8 +37,8 @@ public interface ConfigRegistry {
 	 */
 	Schema getValueSchema(String listenerConfig);
 	/**
-	 * 
-	 * @param listenerConfig
+	 * Broadcast a cluster level command to be followed by each peer
+	 * @param command
 	 */
-	IProcessor getProcessor(String listenerConfig);
+	void submitCommand(GridCommand command);
 }

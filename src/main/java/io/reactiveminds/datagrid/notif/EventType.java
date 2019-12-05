@@ -4,33 +4,39 @@ import org.slf4j.event.Level;
 
 public enum EventType {
 
-	MESSAGE_CREATE {
+	CREATE {
 		@Override
 		public String level() {
 			return Level.DEBUG.name();
 		}
 	},
-	MESSAGE_RECEIPT {
+	RECEIPT {
 		@Override
 		public String level() {
 			return Level.INFO.name();		}
 	},
-	MESSAGE_REPEAT {
+	REPEAT {
 		@Override
 		public String level() {
 			return Level.WARN.name();
 		}
 	},
-	APPLIED_TO_GRID {
+	COALESCE {
 		@Override
 		public String level() {
 			return Level.INFO.name();
 		}
 	},
-	FLUSHED_TO_STORE {
+	SAVED {
 		@Override
 		public String level() {
 			return Level.INFO.name();
+		}
+	},
+	DELETED {
+		@Override
+		public String level() {
+			return Level.WARN.name();
 		}
 	};
 	

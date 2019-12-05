@@ -11,7 +11,7 @@ import io.reactiveminds.datagrid.api.GridContext;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.DataEvent;
 
-public class GridContextProxy implements GridContext {
+class GridContextProxy implements GridContext {
 
 	@Autowired
 	HazelcastInstance hz;

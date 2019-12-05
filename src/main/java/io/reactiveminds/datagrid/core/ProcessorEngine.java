@@ -27,16 +27,21 @@ import org.springframework.util.StringUtils;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.MapStoreConfig;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.ITopic;
+import com.hazelcast.core.Message;
+import com.hazelcast.core.MessageListener;
 
 import io.reactiveminds.datagrid.api.DataLoader;
 import io.reactiveminds.datagrid.err.ConfigurationException;
+import io.reactiveminds.datagrid.err.FlushFailedException;
 import io.reactiveminds.datagrid.spi.ConfigRegistry;
 import io.reactiveminds.datagrid.spi.IProcessor;
 import io.reactiveminds.datagrid.util.ThrowingLambdaFunc;
 import io.reactiveminds.datagrid.util.Utils;
+import io.reactiveminds.datagrid.vo.GridCommand;
 import io.reactiveminds.datagrid.vo.ListenerConfig;
 
-public class DefaultConfigRegistry implements DisposableBean, ConfigRegistry{
+class ProcessorEngine implements DisposableBean, ConfigRegistry, MessageListener<GridCommand>{
 
 	private static final Logger log = LoggerFactory.getLogger("DefaultConfigRegistry");
 	@Autowired
@@ -161,6 +166,16 @@ public class DefaultConfigRegistry implements DisposableBean, ConfigRegistry{
 		for(ListenerContainer config : listenerRegistry) {
 			config.run();
 		}
+		
+		initCommandListener();
+	}
+	@Value("${coalesce.core.commandTopicName:GridClient}")
+	private String commandTopicName;
+	
+	private ITopic<GridCommand> commandTopic;
+	private void initCommandListener() {
+		commandTopic = hz.getTopic(commandTopicName);
+		commandTopic.addMessageListener(this);
 	}
 	@Override
 	public String getKeyTracingId(GenericRecord k) {
@@ -187,11 +202,34 @@ public class DefaultConfigRegistry implements DisposableBean, ConfigRegistry{
 		}
 		return null;
 	}
-	@Override
 	public IProcessor getProcessor(String listenerConfig) {
 		if(listenerMap.containsKey(listenerConfig)) {
 			return listenerMap.get(listenerConfig).getProcessor();
 		}
 		return null;
+	}
+	
+	@Override
+	public void onMessage(Message<GridCommand> message) {
+		GridCommand cmd = message.getMessageObject();
+		switch(cmd.getCommand()) {
+			case FLUSH:
+				IProcessor processor = getProcessor(cmd.getArgs());
+				if(processor != null) {
+					try {
+						processor.flush();
+					} catch (IOException e) {
+						log.error("Exception on grid command", new FlushFailedException("Flush trigger failed", e));
+					}
+				}
+				break;
+			default:
+				break;
+		
+		}
+	}
+	@Override
+	public void submitCommand(GridCommand command) {
+		commandTopic.publish(command);
 	}
 }

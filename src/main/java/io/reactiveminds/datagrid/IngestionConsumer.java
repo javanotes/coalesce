@@ -1,4 +1,4 @@
-package io.reactiveminds.datagrid.core;
+package io.reactiveminds.datagrid;
 
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.listener.ConsumerAwareMessageListener;
 
 import io.reactiveminds.datagrid.spi.IngestionService;
-
-public class RequestConsumer implements ConsumerAwareMessageListener<GenericRecord, GenericRecord> {
+class IngestionConsumer implements ConsumerAwareMessageListener<GenericRecord, GenericRecord> {
 	private static final Logger log = LoggerFactory.getLogger("RequestConsumer");
 	@Autowired
 	IngestionService ingestService;
@@ -20,7 +19,7 @@ public class RequestConsumer implements ConsumerAwareMessageListener<GenericReco
 	@Value("${coalesce.core.requestMapTimeToLiveSecs:30}")
 	private long ttl;
 	
-	public RequestConsumer(String imap) {
+	public IngestionConsumer(String imap) {
 		this.requestMap = imap;
 	}
 

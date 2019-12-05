@@ -6,13 +6,14 @@ import org.apache.avro.Schema;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.context.ApplicationListener;
+import org.springframework.util.Assert;
 
 import io.reactiveminds.datagrid.PlatformConfiguration;
 import io.reactiveminds.datagrid.spi.EventsNotifier;
 import io.reactiveminds.datagrid.vo.DataEvent;
 import io.reactiveminds.datagrid.vo.KeyValRecord;
 
-abstract class AbstractEventsNotifier implements ApplicationListener<EventNotification>, ApplicationEventPublisherAware, EventsNotifier{
+public abstract class AbstractEventsNotifier implements ApplicationListener<EventNotification>, ApplicationEventPublisherAware, EventsNotifier{
 	private ApplicationEventPublisher applicationEventPublisher;
 	
 	@Override
@@ -35,8 +36,11 @@ abstract class AbstractEventsNotifier implements ApplicationListener<EventNotifi
 		EventNotification notif = new EventNotification(sourceId);
 		notif.setEvent(event);
 		if (rec != null) {
+			Assert.notNull(rec.getKey(), "'key' reqd for notification");
 			notif.setKey(rec.getKey().toString());
-			notif.setValue(rec.getValue().toString());
+			if (rec.getValue() != null) {
+				notif.setValue(rec.getValue().toString());
+			}
 		}
 		notif.setTracingId(traceId);
 		applicationEventPublisher.publishEvent(notif);
