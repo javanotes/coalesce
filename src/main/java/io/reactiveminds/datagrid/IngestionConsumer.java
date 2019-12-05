@@ -25,7 +25,7 @@ class IngestionConsumer implements ConsumerAwareMessageListener<GenericRecord, G
 
 	@Override
 	public void onMessage(ConsumerRecord<GenericRecord, GenericRecord> data, Consumer<?, ?> consumer) {
-		ingestService.apply(requestMap, data.key(), data.value(), data.timestamp());
+		ingestService.ingest(requestMap, data.key(), data.value(), data.timestamp());
 		log.info("acknowledge to request map: "+requestMap);
 	}
 

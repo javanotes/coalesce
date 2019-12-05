@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -30,18 +31,20 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
+import com.hazelcast.flakeidgen.FlakeIdGenerator;
 
 import io.reactiveminds.datagrid.api.DataLoader;
 import io.reactiveminds.datagrid.err.ConfigurationException;
 import io.reactiveminds.datagrid.err.FlushFailedException;
 import io.reactiveminds.datagrid.spi.ConfigRegistry;
 import io.reactiveminds.datagrid.spi.IProcessor;
+import io.reactiveminds.datagrid.spi.IdGenerator;
 import io.reactiveminds.datagrid.util.ThrowingLambdaFunc;
 import io.reactiveminds.datagrid.util.Utils;
 import io.reactiveminds.datagrid.vo.GridCommand;
 import io.reactiveminds.datagrid.vo.ListenerConfig;
 
-class ProcessorEngine implements DisposableBean, ConfigRegistry, MessageListener<GridCommand>{
+class ProcessorEngine implements DisposableBean, ConfigRegistry, MessageListener<GridCommand>, IdGenerator{
 
 	private static final Logger log = LoggerFactory.getLogger("DefaultConfigRegistry");
 	@Autowired
@@ -231,5 +234,11 @@ class ProcessorEngine implements DisposableBean, ConfigRegistry, MessageListener
 	@Override
 	public void submitCommand(GridCommand command) {
 		commandTopic.publish(command);
+	}
+	@Override
+	public String nextId() {
+		FlakeIdGenerator gen = hz.getFlakeIdGenerator("Coalesce");
+		UUID u = new UUID(System.nanoTime(), gen.newId());
+		return u.toString();
 	}
 }

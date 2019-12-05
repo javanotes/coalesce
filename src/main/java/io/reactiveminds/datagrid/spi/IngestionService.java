@@ -9,6 +9,7 @@ public interface IngestionService {
 	 * @param key
 	 * @param value
 	 * @param inTime
+	 * @return 
 	 */
-	void apply(String requestMap, GenericRecord key, GenericRecord value, long inTime);
+	String ingest(String requestMap, GenericRecord key, GenericRecord value, long inTime);
 }
