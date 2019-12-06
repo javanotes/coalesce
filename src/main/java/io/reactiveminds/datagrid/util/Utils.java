@@ -245,6 +245,7 @@ public class Utils {
 			throw new UncheckedIOException("encode to bytes", e);
 		}
 	}
+	
 	/**
 	 * Reconstruct avro record from bytes
 	 * @param b

@@ -1,7 +1,7 @@
 package io.reactiveminds.datagrid.spi;
 
 import org.apache.avro.generic.GenericRecord;
-@FunctionalInterface
+import org.apache.avro.specific.SpecificRecord;
 public interface IngestionService {
 	/**
 	 * 
@@ -12,4 +12,5 @@ public interface IngestionService {
 	 * @return 
 	 */
 	String ingest(String requestMap, GenericRecord key, GenericRecord value, long inTime);
+	<V extends SpecificRecord, K extends SpecificRecord> String ingest(String requestMap, K key, V value, long inTime);
 }

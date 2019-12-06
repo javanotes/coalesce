@@ -5,9 +5,9 @@ import org.apache.avro.generic.GenericRecord;
 public interface SurvivorRule {
 	/**
 	 * Apply a survivor-ship rule. Return a null for records to be deleted
-	 * @param base The current record into which the merge has to be done, or null if there is no current data (insert)
-	 * @param in The incoming record which needs to be survived
+	 * @param onfile The current record into which the merge has to be done, or null if there is no current data (insert)
+	 * @param request The incoming record which needs to be survived
 	 * @return the updated/new record or null for deletion
 	 */
-	GenericRecord merge(GenericRecord base, GenericRecord in, GridContext grid);
+	GenericRecord merge(GenericRecord onfile, GenericRecord request, GridContext grid);
 }

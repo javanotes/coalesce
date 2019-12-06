@@ -1,6 +1,7 @@
 package io.reactiveminds.datagrid.core;
 
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.specific.SpecificRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,12 @@ class DefaultIngestionService implements IngestionService {
 		map.set(event.getMessageKey(), event);//TODO: ttl?
 		log.debug("acknowledge to request map: "+requestMap);
 		return event.getUid();
+	}
+
+	@Override
+	public <V extends SpecificRecord, K extends SpecificRecord> String ingest(String requestMap, K key, V value,
+			long inTime) {
+		return ingest(requestMap, Utils.specificToGeneric(key), Utils.specificToGeneric(value), inTime);
 	}
 
 }
